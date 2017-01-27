@@ -1,0 +1,214 @@
+---
+title: "Project 5"
+author: "Daniel Izaguirre"
+date: "November 8, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(dplyr)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preface
+
+```{r}
+data <- data.frame(ToothGrowth)
+```
+```{r echo=FALSE}
+classify <- function(n) 
+{
+  if (n >= 2)
+    return("High")
+  else if(n>=1)
+    return("Moderate")
+  else
+    return("Low")
+}
+data$dosage <- sapply(data$dose,classify)
+```
+```{r}
+head(data)
+```
+  The "ToothGrowth" data set shows the effect of vitamin c on the growth of teeth in guinea pigs. There are 3 dosage amounts being used in the set: 0.5 mg/day (Low), 1.0 mg/day (Moderate), 2.0 mg/day (High). Additionally there are two delivery methods, orange juice (oj) and ascorbic acid (vc). 
+
+
+```{r data}
+str(data)
+```
+
+## Plots
+
+#### By delivery method of supplement:
+```{r echo=FALSE}
+data_plot1 <- ggplot(data, aes(supp, len,fill=factor(supp)))
+data_plot1 <- data_plot1 + geom_boxplot()
+data_plot1 <- data_plot1 + labs(title="Boxplots for the Supplement Delivery Method", x="Supplement", y="Growth Length")
+```
+```{r fig.width=7, fig.height=4}
+data_plot1
+```
+
+  The orange juice supplement produces a higher mean tooth growth. However the ascorbic acid produces a wider spread of possible lengths.
+  
+
+#### By dosage:
+```{r echo=FALSE}
+data_plot2 <- ggplot(data, aes(factor(dose), len, fill=factor(dose)))
+data_plot2 <- data_plot2 + geom_boxplot()
+data_plot2 <- data_plot2 + labs(title="Boxplots for the Dosage amount", x="Dosage Amount", y="Growth Length")
+```
+```{r fig.width=7, fig.height=4} 
+data_plot2
+```
+
+  The high dosage amount produces the greatest amount of tooth length growth. While there is a relative decrease in effectiveness with lowering amounts of dosage.
+
+
+#### By both variables combined:
+```{r echo=FALSE}
+data_plot3 <- ggplot(data, aes(supp, len, fill=factor(supp)))
+data_plot3 <- data_plot3 + facet_grid(.~dose)
+data_plot3 <- data_plot3 + geom_boxplot()
+data_plot3 <- data_plot3 + labs(title="Boxplots for the Combined Variables", x="Supplement", y="Growth Length")
+```
+```{r fig.width=7, fig.height=4}
+data_plot3
+```
+
+  From the combined graphs, the trend of growth increases with increasing dosage increments in both supplements. So,the highest dosage amount produces the most growth. It actually seems to be that dosage amount has a strong influence in tooth growth. However until the high dosage of 2.0 mg/day, the orange juice seems to be better than ascorbic acid to produce growth.
+
+  
+## Confidence Intervals
+
+#### Guinea pigs who receive a supplement as ascorbic acid (any dosage)
+```{r}
+data_vc <- data %>% 
+  filter(supp == "VC")
+t_test_vc <- t.test(data_vc$len, conf.level = .95)
+conf_vc <- t_test_vc$conf.int
+conf_vc
+```
+```{r echo=FALSE}
+conf_vc_1 <- round(conf_vc[1], digits=2)
+conf_vc_2 <- round(conf_vc[2], digits=2)
+```
+
+  The confidence interval for the ascorbic acid observations is between `r conf_vc_1` and `r conf_vc_2`.
+
+
+#### Guinea pigs who receive 2 mg of the supplement, delivered via orange juice
+
+```{r}
+data_oj <- data %>% 
+  filter(supp == "OJ") %>% 
+  filter(dosage == "High")
+t_test_oj <- t.test(data_oj$len, conf.level = .95)
+conf_oj <- t_test_oj$conf.int
+conf_oj
+```
+```{r echo=FALSE}
+conf_oj_1 <- round(conf_oj[1], digits=2)
+conf_oj_2 <- round(conf_oj[2], digits=2)
+```
+
+The confidence interval for the orange juice observations is between `r conf_oj_1` and `r conf_oj_2`.
+
+
+## T-test Comparisons of various samples
+
+#### Between guinea pigs who receive ascorbic acid and those who receive orange juice, regardless of dosage (2-sided test).
+
+Ho: The growth of teeth is equal when the supplements is ascorbic acid or orange juice.
+
+Ha: The growth of teeth is not equal when the supplements is ascorbic acid or orange juice.
+
+```{r}
+test1 <- t.test(data_vc$len, data_oj$len)
+test1
+```
+  
+  The p-value is significant, so the test rejects the null hypothesis. The populations being tested are the guinea pigs which are given ascobic acid and those given orange juice. The test suggests that there is a difference among the two.
+
+  
+#### Between guinea pigs who receive a 1 mg dose from orange juice and those who receive a 2 mg dose from orange juice (1-sided test)
+
+Ho: A moderate amount of dosage will be equal to a high amount of dosage.
+
+Ha: A moderate amount of dosage will be less than a high amount of dosage.
+
+```{r}
+data_2_oj_mod <- data %>% 
+  filter(supp == "OJ") %>% 
+  filter(dosage == "Moderate")
+data_2_oj_high <- data %>% 
+  filter(supp == "OJ") %>% 
+  filter(dosage == "High")
+test2 <- t.test(data_2_oj_mod$len, data_2_oj_high$len, alternative = "less")
+test2
+```
+
+  The p-value is significant, so the test rejects the null hypothesis. The 2 populations being compared are the guinea pigs that are given a moderate dosage of orange juice and a high dosage of orange juice. There is a difference, it is likely that a a moderate amount of dosage produces less growth than a high dosage.
+
+
+#### Between guinea pigs who receive a 1 mg dose from ascorbic acid and those who receive a 2 mg dose from ascorbic acid (1-sided test)
+
+Ho: A moderate dosage of ascorbic acid produces tooth growth equal to the high dosage of ascorbic acid.
+
+Ha: A moderate dosage of ascorbic acid produces tooth growth less than the high dosage of ascorbic acid.
+
+```{r}
+data_3_vc_mod <- data %>% 
+  filter(supp == "VC") %>% 
+  filter(dosage == "Moderate")
+data_3_vc_high <- data %>% 
+  filter(supp == "VC") %>% 
+  filter(dosage == "High")
+test3 <- t.test(data_3_vc_mod$len, data_3_vc_high$len, alternative = "less")
+test3
+```
+
+  The p-value is significant, so the test rejects the null hypothesis. The 2 populations being compared are the guinea pigs that are given a moderate dosage of ascorbic acid and a high dosage of ascorbic acid. The test suggests that there is a difference between the moderate dosage and the high dosage of ascorbic acid.
+
+  
+#### Between guinea pigs who receive a 1 mg dose from ascorbic acid and those who receive a 1 mg dose from orange juice (2-sided test)
+
+Ho: A moderate dosage of ascorbic acid produces tooth growth equal to a moderate dosage of orange juice.
+
+Ha: A moderate dosage of ascorbic acid produces tooth growth not equal to the moderate dosage of orange juice.
+
+```{r}
+data_4_vc_mod <- data %>% 
+  filter(supp=="VC") %>% 
+  filter(dosage=="Moderate")
+data_4_oj_mod <- data %>% 
+  filter(supp=="OJ") %>% 
+  filter(dosage=="Moderate")
+test4 <- t.test(data_4_vc_mod$len,data_4_oj_mod$len)
+test4
+```
+  
+  The p-value is significant, so the test rejects the null hypothesis. The 2 populations being compared are the guinea pigs that are given a moderate dosage of ascorbic acid and a moderate dosage of orange juice. The test suggests that there is a difference between the moderate dosage of ascorbic acid and moderate dosage of orange juice.
+
+  
+#### Between guinea pigs who receive a 2 mg dose from ascorbic acid and those who receive a 2 mg dose from orange juice (2-sided test) 
+
+Ho: A high dosage of ascorbic acid produces tooth growth equal to a high dosage of orange juice.
+
+Ha:  A high dosage of ascorbic acid produces tooth growth not equal to the high dosage of orange juice.
+
+```{r}
+data_5_vc_high <- data %>% 
+  filter(supp=="VC") %>% 
+  filter(dosage=="High")
+data_5_oj_high <- data %>% 
+  filter(supp=="OJ") %>% 
+  filter(dosage=="High")
+test5 <- t.test(data_5_vc_high$len,data_5_oj_high$len)
+test5
+``` 
+
+  The p-value is not significant, so the test fails to reject the null hypothesis. The 2 populations being compared are the guinea pigs that are given a high dosage of ascorbic acid and a high dosage of orange juice. The test suggests that there is no significant difference between the high dosage of ascorbic acid and high dosage of orange juice.
+  
+  
