@@ -1,0 +1,113 @@
+---
+title: "Project7_DI"
+author: "Daniel Izaguirre"
+date: "December 6, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r include=FALSE}
+library("randomForest")
+library("caret")
+library("kernlab")
+```
+# Project 7
+
+First, I will read in the data to an object.
+
+```{r}
+weight <- read.csv("weightlift.csv")
+```
+
+### Choosing a sampling algorithm
+
+For this project, the necessary sampling algorithm is cross validation. 
+
+```{r}
+trainOpts <- trainControl()
+trainOpts$method = "cv"
+```
+
+### Partitioning
+
+Now the data must be partitioned into various objects. First the data must be partitioned into a training set, which will be 40% of the data for this model. The data will also be split up based on the partition into training data and validation data.
+
+```{r}
+set.seed(3792)
+inTraining <- createDataPartition(y=weight$classe, p=0.4, list=FALSE)
+trainingData <- weight[inTraining,]
+validationData <- weight[-inTraining,]
+```
+
+### Running the model
+
+Now that the data is in the proper sets, the model can run. The machine learning algorithm for this model will be the random forest.
+
+```{r}
+rfmodel_weight <- train(classe~., data=trainingData, method="rf",trControl=trainOpts)
+```
+
+The model that is produced will be a model with all of the 56 variables. The model must be reduced to 30 of the best predictors. This could improve efficiency, despite already having high efficiency.
+
+### Selecting the Top 30 variables
+
+The data must be sorted by importance within the model. The varImp() function in the caret library will provide the importance of each variable regarding the model. The final data set to be created will be the validationData dataset. This will be used to retrain a new model with the top 30 predictors.
+
+```{r}
+best <- varImp(rfmodel_weight)
+best_sort <- order(best$importance$Overall, decreasing = TRUE)
+keep <- row.names(best$importance)[best_sort[1:30]]
+validationData <- validationData[,c(keep,"classe")]
+```
+
+### Partitioning the new dataset
+
+The validationData dataset will must be partitioned in the same way that the original dataset was.
+
+```{r}
+inTraining <- createDataPartition(y=validationData$classe, p=0.4, list=FALSE)
+trainingAgain <- validationData[inTraining,]
+testing <- validationData[-inTraining,]
+```
+
+
+### Retraining the model
+
+The new model will still have a cross validation algorithm. It will also be using a random forest machine learning algorithm. 
+
+```{r}
+rfmodel2_weight <- train(classe~., data = trainingAgain, method = "rf", trControl = trainOpts)
+```
+### The Final Model
+
+The final model has been trained with the 30 best predictors.
+
+```{r}
+rfmodel2_weight$finalModel
+```
+
+##### In-sample Accuracy
+
+```{r}
+testPredict <- predict(rfmodel2_weight, trainingAgain)
+confusionMatrix(testPredict, trainingAgain$classe)$table
+overall <- confusionMatrix(testPredict, trainingAgain$classe)$overall[1]
+overall <- round(overall*100,2)
+```
+The in-sample accuracy of the final model is `r overall`%.
+
+##### Out-of-Sample Accuracy
+
+```{r}
+testPredict <- predict(rfmodel2_weight, testing)
+confusionMatrix(testPredict, testing$classe)$table
+overall <- confusionMatrix(testPredict, testing$classe)$overall[1]
+overall <- round(overall*100,2)
+```
+
+The out-of-sample accuracy of the final model is `r overall`%.
+
+
+
