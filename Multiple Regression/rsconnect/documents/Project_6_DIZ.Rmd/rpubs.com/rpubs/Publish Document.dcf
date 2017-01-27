@@ -1,0 +1,7 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/228187/1f40bb30d85b4764bdaf0f8f41edaa45
+bundleId: https://api.rpubs.com/api/v1/document/228187/1f40bb30d85b4764bdaf0f8f41edaa45
+url: http://rpubs.com/DanielIzaguirre/228187
+when: 1479452933.70811

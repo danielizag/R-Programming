@@ -1,0 +1,53 @@
+---
+title: "Multiple Regression Notes"
+author: "D. Spence"
+date: "November 3, 2016"
+output: html_document
+---
+
+```{r Preliminaries, results="hide", message=FALSE, warning=FALSE}
+library("ggplot2")
+data("mtcars")
+data("InsectSprays")
+```
+
+## Categorical Predictors
+
+### A Simple Categorical Variable
+```{r SimpleCategorical}
+amcode <- function(x) {if (x) '1-Manual' else '2-Automatic'}
+mtcars$trans <- sapply(mtcars$am,amcode)
+
+boxplot(mpg ~ trans, data = mtcars, xlab="Transmission", ylab="MPG")
+
+transModel <- lm(mpg ~ trans, data=mtcars)
+summary(transModel)
+
+a <- transModel$coefficients[1]
+b <- transModel$coefficients[2]
+```
+
+$\widehat{MPG} = `r round(a,2)` + `r round(b,2)`*trans$  
+For manual transmission, trans is 0. This model indicates the mean gas mileage for cars with manual transmission is `r round(a, 1)` MPG. For automatic transmission, trans is 1. This model indicates the mean gas mileage for cars with automatic transmission is `r round(a+b,1)` MPG.
+
+### Categorical Variable with Several Values
+```{r SeveralCategories}
+boxplot(count ~ spray, data = InsectSprays, xlab="Spray", ylab="Insects Found")
+sprayModel <- lm(count ~ spray, data = InsectSprays)
+
+summary(sprayModel)
+```
+
+## More Than One Predictor
+
+```{r TwoPredictors}
+mpgModel <- lm(mpg ~ wt + trans, data = mtcars)
+
+summary(mpgModel)
+```
+
+```{r SeveralPredictors}
+mpgModel <- lm(mpg ~ ., data = mtcars)
+
+summary(mpgModel)
+```

@@ -1,0 +1,484 @@
+---
+title: "Project 6"
+author: "Daniel Izaguirre"
+date: "November 17, 2016"
+output: html_document
+---
+
+# Project 6
+
+## Details
+
+```{r}
+library("ggplot2")
+library("dplyr")
+```
+Analysis of the Iowa Housing data set provided by the Ames Assessor's Office. The data set is to assess values for individual residential properties sold in Ames, IA from 2006 to 2010.
+
+The data set contains 81 variables and 2930 observations.
+
+This project analyzes 8 variables in total. However only 5 are chosen for their statistical significance for the final multiple regession model. These are produced by other variables in the dataset to help summarise the data. Boxplots are used to visualize the respective variables. 
+
+```{r}
+data <- read.csv("IowaHousing.csv")
+View(data)
+```
+
+### Model 1: By shape of the lot.
+
+This model will need to define the observations which are "regular" and "irregular". The data set has 3 types of irregular observations that are possible and 1 type of regular observation in regard to the shape of the lot.
+
+```{r}
+shape <- function(n) 
+{
+  if (n == 'Reg')
+    return("regular")
+  else 
+    return("irregular")
+}
+data$Shape <- sapply(data$Lot.Shape, shape)
+```
+
+The model's new variable, Shape, can now be plotted.
+
+```{r}
+plot1 <- ggplot(data, aes(Shape, SalePrice))
+plot1 <- plot1 + geom_boxplot()
+plot1 <- plot1 + xlab("Shape")
+plot1 <- plot1 + ggtitle("Shape to Price")
+plot1
+```
+
+The "irregular" shape of a lot has a higher mean price than a "regular" lot.
+
+Now, we can make a model to represent statistical significance of the variable in regard to price with Shape. 
+
+```{r}
+priceModel <- lm(SalePrice ~ Shape, data = data)
+summary(priceModel)
+
+#p_value_1 <- summary(priceModel)$coefficients[2,4]
+#p_value_1
+
+priceCoef <- priceModel$coefficients
+co1 <- round(priceCoef[1],2)
+co2 <- round(priceCoef[2],2)
+priceModel_r2 <- round(summary(priceModel)$r.squared, digits = 2)*100
+
+fstat <- summary(priceModel)$fstatistic
+fstat
+```
+
+The model shows a weak negative correlation for the variables in the multiple regression model. 
+
+The model shows a significant p-value for all values. The F-statistic is on `r round(fstat[1],2)` on `r fstat[2]` to `r fstat[3]`. Additionally, this model has an r-squared value of `r priceModel_r2`%, which means that `r priceModel_r2`% of variance in the price of a home is accounted for by the shape of the lot.
+
+Current Linear Regression Equation:
+$\widehat{SalePrice} = (`r co1`) + (`r co2`)*Shape$
+
+For irregular shape, the Shape is 0. This model indicates the mean home price with an irregular shape lot is `r round(priceCoef[1],1)`. For regular shape, the Shape is 1. This model indicates the mean home price with an irregular shape lot is `r round((priceCoef[1])+(priceCoef[2]),1)`.  
+
+
+### Model 2: By the lot's road access to a main street.
+
+This model will need to define a variable for the observations which have different kinds of road access. The road access variable will defined by "paved" and "unpaved" access to the main street.
+
+```{r}
+road_access <- function(n) 
+{
+  if (n == 'Pave')
+    return("paved")
+  else 
+    return("unpaved")
+}
+data$RoadAccess <- sapply(data$Street, road_access)
+```
+
+The model's new variable, RoadAccess, can now be plotted.
+
+```{r}
+plot2 <- ggplot(data, aes(RoadAccess, SalePrice))
+plot2 <- plot2 + geom_boxplot()
+plot2 <- plot2 + xlab("Road Access")
+plot2 <- plot2 + ggtitle("Road Access to Price")
+plot2
+```
+
+A "paved" access to a road has a higher mean price than a home with an "unpaved" access to a main road.
+
+Now, we can make a multiple regression model to represent statistical significance of the variables in regard to price. 
+
+```{r}
+priceModel <- lm(SalePrice ~ Shape + RoadAccess, data = data)
+summary(priceModel)
+
+priceCoef <- priceModel$coefficients
+priceCoef
+
+fstat <- summary(priceModel)$fstatistic
+fstat
+
+priceModel_r2 <- round(summary(priceModel)$r.squared, digits = 2)*100
+priceModel_r2
+```
+
+The model shows a weak negative correlation in for the variables in the multiple regression model. 
+
+The model shows a significant p-value for all values. The F-statistic is on `r round(fstat[1],2)` on `r fstat[2]` to `r fstat[3]`. Additionally, this model has an r-squared value of `r priceModel_r2`%, which means that `r priceModel_r2`% of variance in the price of a home is accounted for by the shape and road access of the lot.
+
+Current Linear Regression Equation:
+$\widehat{SalePrice} = (`r round(priceCoef[1],2)`) + (`r round(priceCoef[2],2)`)*Shape + (`r round(priceCoef[3],2)`)*RoadAccess$
+
+The original equation is extended with a new RoadAccess coefficient. When RoadAccess is 0, the mean home price is `r round(priceCoef[1],2)`. When RoadAccess is 1, the mean home price is `r round(priceCoef[1],2) + round(priceCoef[3],1)`.
+
+### Model 3: By a lot being in a residentialor non-residential area.
+
+This model will need to define the observations which have different kinds of property location. In particular, the new variable will have 2 types of observations, "residential" and "non-residential".
+
+```{r}
+data$Residential <- ifelse(grepl('R[A-Z]', data$MS.Zoning), "residential", "non-residential")
+```
+
+Homes in "nonresidential" areas have a higher mean price than those which reside in a "residential" area.
+
+The model's new variable, Residential, can now be plotted.
+
+```{r}
+plot3 <- ggplot(data, aes(Residential, SalePrice))
+plot3 <- plot3 + geom_boxplot()
+plot3 <- plot3 + xlab("Residential")
+plot3 <- plot3 + ggtitle("Residential Area to Price")
+plot3
+```
+
+The homes "non-residential" areas have a higher mean price than homes with in "residential" area.
+
+Now, we can make a multiple regression model to represent statistical significance of the variables in regard to price. 
+
+```{r}
+priceModel <- lm(SalePrice ~ Shape + RoadAccess + Residential, data = data)
+summary(priceModel)
+
+priceCoef <- priceModel$coefficients
+priceCoef
+
+fstat <- summary(priceModel)$fstatistic
+fstat
+
+priceModel_r2 <- round(summary(priceModel)$r.squared, digits = 2)*100
+priceModel_r2
+```
+
+The model shows a weak positive correlation in for the variables in the multiple regression model. 
+
+The model shows a significant p-value for all values. The F-statistic is on `r round(fstat[1],2)` on `r fstat[2]` to `r fstat[3]`. Additionally, this model has an r-squared value of `r priceModel_r2`%, which means that `r priceModel_r2`% of variance in the price of a home is accounted for by the shape, road access, and status of residential area of the lot.
+
+Current Linear Regression Equation:
+$\widehat{SalePrice} = (`r round(priceCoef[1],2)`) + (`r round(priceCoef[2],2)`)*Shape + (`r round(priceCoef[3],2)`)*RoadAccess + (`r round(priceCoef[4],2)`)*Residential$
+
+The previous model's equation is extended with the new Residential coefficient. When Residential is 0, the mean price of a home is `r round(priceCoef[1],2)`. When Residential is 1, the mean price of a home is `r round(priceCoef[1],2) + round(priceCoef[4],2)`
+
+### Model 4: By the quality of materials and finish of the home on the lot.
+
+This model will define a variable which accounts for homes that have been made and finished with quality materials. In general this can be considered overall quality of the home. In particular, the new variable will have 2 types of observations, "good and above" and "average and below".
+
+```{r}
+quality <- function(n) 
+{
+  if (n >= 7)
+    return("good and above")
+  else 
+    return("average and below")
+}
+data$Quality <- sapply(data$Overall.Qual, quality)
+```
+
+The box plot shows that homes with "good and above" finish and quality of materials have a higher mean price as opposed to "average and below".
+
+The model's new variable, Quality, can now be plotted.
+
+```{r}
+plot4 <- ggplot(data, aes(Quality, SalePrice))
+plot4 <- plot4 + geom_boxplot()
+plot4 <- plot4 + xlab("Quality")
+plot4 <- plot4 + ggtitle("Quality of Home to Price")
+plot4
+```
+
+Now, we can make a multiple regression model to represent statistical significance of the variables in regard to price. 
+
+```{r}
+priceModel <- lm(SalePrice ~ Shape + RoadAccess + Residential + Quality, data = data)
+summary(priceModel)
+
+p_value_int <- summary(priceModel)$coefficients[3,4]
+p_value_int
+
+priceCoef <- priceModel$coefficients
+priceCoef
+
+fstat <- summary(priceModel)$fstatistic
+fstat
+
+priceModel_r2 <- round(summary(priceModel)$r.squared, digits = 2)*100
+priceModel_r2
+```
+
+The model shows a moderate positive correlation in for the variables in the multiple regression model.
+
+The model shows a significant p-value for all values except RoadAccess (p-value = `r p_value_int`), thus it must be removed in the next model. The F-statistic is on `r round(fstat[1],2)` on `r fstat[2]` to `r fstat[3]`. Additionally, this model has an r-squared value of `r priceModel_r2`%, which means that `r priceModel_r2`% of variance in the price of a home is accounted for by the shape, road access, status of residential area of the lot, and quality of home.
+
+Current Linear Regression Equation:
+$\widehat{SalePrice} = (`r round(priceCoef[1],2)`) + (`r round(priceCoef[2],2)`)*Shape + (`r round(priceCoef[3],2)`)*RoadAccess + (`r round(priceCoef[4],2)`)*Residential + (`r round(priceCoef[5],2)`)*Quality$
+
+The previous model's equation is extended with the new Quality coefficient. When Quality is 0, the mean price of a home is `r round(priceCoef[1],2)`. When Quality is 1, the mean price of a home is `r (round(priceCoef[1],2)) + (round(priceCoef[5],2))`.
+
+### Model 5: By condition of the house at sell
+
+This model will define a variable which accounts for a home's physical and aesthetic condition at sell. In general this can be considered condition of the home when bought. In particular, the new variable will have 2 types of observations, "good and above" and "average and below".
+
+```{r}
+condition <- function(n) 
+{
+  if (n >= 7)
+    return("good and above")
+  else 
+    return("average and below")
+}
+data$Condition <- sapply(data$Overall.Cond, condition)
+```
+
+The boxplots show that homes with a "average and below" quality of physical and aesthetic condition at sell have a higher mean selling price than those which have "good and above". Which I believe could be due to the time period. This was during the pre-recession and recession times of the housing market.
+
+The model's new variable, Condition, can now be plotted.
+
+```{r}
+plot5 <- ggplot(data, aes(Condition, SalePrice))
+plot5 <- plot5 + geom_boxplot()
+plot5 <- plot5 + xlab("Condition")
+plot5 <- plot5 + ggtitle("Condition of Home at sell to Price")
+plot5
+```
+
+
+Now, we can make a multiple regression model to represent statistical significance of the variables in regard to price. 
+
+```{r}
+priceModel <- lm(SalePrice ~ Shape + Residential + Quality + Condition, data = data)
+summary(priceModel)
+
+p_value_int <- summary(priceModel)$coefficients[5,4]
+p_value_int
+
+priceCoef <- priceModel$coefficients
+priceCoef
+
+fstat <- summary(priceModel)$fstatistic
+fstat
+
+priceModel_r2 <- round(summary(priceModel)$r.squared, digits = 2)*100
+priceModel_r2
+```
+
+The model shows a moderate positive correlation in for the variables in the multiple regression model.
+
+The model shows a significant p-value for all values except Condition (p-value = `r p_value_int`), thus it must be removed in the next model. The F-statistic is on `r round(fstat[1],2)` on `r fstat[2]` to `r fstat[3]`. Additionally, this model has an r-squared value of `r priceModel_r2`%, which means that `r priceModel_r2`% of variance in the price of a home is accounted for by the shape, status of residential area of the lot, and quality of home, and the condition of the home at sell.
+
+Current Linear Regression Equation:
+$\widehat{SalePrice} = (`r round(priceCoef[1],2)`) + (`r round(priceCoef[2],2)`)*Shape + (`r round(priceCoef[4],2)`)*Residential + (`r round(priceCoef[5],2)`)*Quality$
+
+
+
+### Model 6: By condition of sale.
+
+This model will define a variable which accounts for a home's condition of sell. This variable can be considered in terms of the next owner acquires the home. In particular, the new variable will have 2 types of observations, "normal" and "other". Where "normal" is the home being bought, and a possible example of "other" would be the home being bought between family members or perhaps the home is a partially finished home etc.
+
+```{r}
+condition_sale <- function(n) 
+{
+  if (n == "Normal")
+    return("normal")
+  else 
+    return("other")
+}
+data$SaleCond <- sapply(data$Sale.Condition, condition_sale)
+```
+
+The model's new variable, SaleCond, can now be plotted.
+
+```{r}
+plot6 <- ggplot(data, aes(SaleCond, SalePrice))
+plot6 <- plot6 + geom_boxplot()
+plot6 <- plot6 + xlab("Condition of Sell")
+plot6 <- plot6 + ggtitle("Condition of Sale to Price")
+plot6
+```
+
+Homes which were acquired through normal transactions had a lower mean selling price. Homes acquired through other forms of transactions were at a higher mean selling price.
+
+Now, we can make a multiple regression model to represent statistical significance of the variables in regard to price. 
+
+```{r}
+priceModel <- lm(SalePrice ~ Shape + Residential + Quality + SaleCond, data = data)
+summary(priceModel)
+
+#p_value_int <- summary(priceModel)$coefficients[5,4]
+#p_value_int
+
+priceCoef <- priceModel$coefficients
+priceCoef
+
+fstat <- summary(priceModel)$fstatistic
+fstat
+
+priceModel_r2 <- round(summary(priceModel)$r.squared, digits = 2)*100
+priceModel_r2
+```
+
+The model shows a moderate positive correlation in for the variables in the multiple regression model.
+
+The model shows a significant p-value for all values. The F-statistic is on `r round(fstat[1],2)` on `r fstat[2]` to `r fstat[3]`. Additionally, this model has an r-squared value of `r priceModel_r2`%, which means that `r priceModel_r2`% of variance in the price of a home is accounted for by the shape, status of residential area of the lot, and quality of home, and the condition of sell for the home.
+
+Current Linear Regression Equation:
+$\widehat{SalePrice} = (`r round(priceCoef[1],2)`) + (`r round(priceCoef[2],2)`)*Shape + (`r round(priceCoef[3],2)`)*Residential + (`r round(priceCoef[4],2)`)*Quality + (`r round(priceCoef[5],2)`)*SaleCond$
+
+The previous model's equation is extended with the new Quality coefficient. When SaleCond is 0 ("normal"), the mean price of a home is `r round(priceCoef[1],2)`. When Quality is 1 ("other"), the mean price of a home is `r (round(priceCoef[1],2)) + (round(priceCoef[5],2))`.
+
+### Model 7: Homes with some special addition.
+
+This model will define a variable which accounts for a home's condition of sell. This variable can be considered in terms of the next owner acquires the home. In particular, the new variable will have 2 types of observations, "normal" and "other". Where "normal" is the home being bought, and a possible example of "other" would be the home being bought between family members or perhaps the home is a partially finished home etc.
+
+```{r}
+data$Special.Add <- ifelse(grepl('[a-zA-Z]+', data$Misc.Feature), "special", "normal")
+```
+
+The model's new variable, Special.Add, can now be plotted.
+
+```{r}
+plot7 <- ggplot(data, aes(Special.Add, SalePrice))
+plot7 <- plot7 + geom_boxplot()
+plot7 <- plot7 + xlab("Some Special Addition")
+plot7 <- plot7 + ggtitle("Special Addition to Price")
+plot7
+```
+
+Homes with a no special addition sold at a higher mean selling price, while homes with a special addition sold at a lower mean selling price.
+
+Now, we can make a multiple regression model to represent statistical significance of the variables in regard to price. 
+
+```{r}
+priceModel <- lm(SalePrice ~ Shape + Residential + Quality + SaleCond + Special.Add, data = data)
+summary(priceModel)
+
+p_value_int <- summary(priceModel)$coefficients[6,4]
+p_value_int
+
+priceCoef <- priceModel$coefficients
+priceCoef
+
+fstat <- summary(priceModel)$fstatistic
+fstat
+
+priceModel_r2 <- round(summary(priceModel)$r.squared, digits = 2)*100
+priceModel_r2
+```
+
+The model shows a moderate positive correlation in for the variables in the multiple regression model.
+
+The model shows a significant p-value for all values. However, Special.Add is another interaction because of it's obvious negative slope. Thus, Special.Add must be removed from the multiple regression model . The F-statistic is on `r round(fstat[1],2)` on `r fstat[2]` to `r fstat[3]`. Additionally, this model has an r-squared value of `r priceModel_r2`%, which means that `r priceModel_r2`% of variance in the price of a home is accounted for by the shape, status of residential area of the lot, and quality of home, and the condition of sell for the home.
+
+Current Linear Regression Equation:
+$\widehat{SalePrice} = (`r round(priceCoef[1],2)`) + (`r round(priceCoef[2],2)`)*Shape + (`r round(priceCoef[3],2)`)*Residential + (`r round(priceCoef[4],2)`)*Quality + (`r round(priceCoef[5],2)`)*SaleCond$
+
+### Model 8: Homes with quality exteriors
+
+This model will define a variable which accounts for a home's exterior quality. The variable classifies observations with "quality" and "avg. to poor" values.
+
+```{r}
+ext_qual <- function(n) 
+{
+  if (n == "Ex" || n == "Gd")
+    return("quality")
+  else 
+    return("avg. to poor")
+}
+data$Ext.Qual <- sapply(data$Exter.Qual, ext_qual)
+```
+
+The model's new variable, Ext.Qual, can now be plotted.
+
+```{r}
+plot8 <- ggplot(data, aes(Ext.Qual, SalePrice))
+plot8 <- plot8 + geom_boxplot()
+plot8 <- plot8 + xlab("External Quality")
+plot8 <- plot8 + ggtitle("External Quality to Price")
+plot8
+```
+
+Homes with an avg. to poor external quality sold at a lower price than those with quality external appearance.
+
+Now, we can make a multiple regression model to represent statistical significance of the variables in regard to price. 
+
+```{r}
+priceModel <- lm(SalePrice ~ Shape + Residential + Quality + SaleCond + Ext.Qual, data = data)
+summary(priceModel)
+
+p_value_int <- summary(priceModel)$coefficients[6,4]
+p_value_int
+
+priceCoef <- priceModel$coefficients
+priceCoef
+
+fstat <- summary(priceModel)$fstatistic
+fstat
+
+priceModel_r2 <- round(summary(priceModel)$r.squared, digits = 2)*100
+priceModel_r2
+```
+
+This final multiple regression model shows a moderate positive correlation. This means that the mean price of a home is explained relatively well by these variables.
+
+The model shows a significant p-value for all values. The F-statistic is on `r round(fstat[1],2)` on `r fstat[2]` to `r fstat[3]`. Additionally, this model has an r-squared value of `r priceModel_r2`%, which means that `r priceModel_r2`% of variance in the price of a home is accounted for by the shape, status of residential area of the lot, and quality of home, and the condition of sell for the home.
+
+Current Linear Regression Equation:
+$\widehat{SalePrice} = (`r round(priceCoef[1],2)`) + (`r round(priceCoef[2],2)`)*Shape + (`r round(priceCoef[3],2)`)*Residential + (`r round(priceCoef[4],2)`)*Quality + (`r round(priceCoef[5],2)`)*SaleCond + (`r round(priceCoef[6],2)`)*Ext.Qual$
+
+The previous model's equation is extended with the new Ext.Qual coefficient. When Ext.Qual is 0 ("avg. to poor"), the mean price of a home is `r round(priceCoef[1],2)`. When Quality is 1 ("quality"), the mean price of a home is `r (round(priceCoef[1],2)) + (round(priceCoef[6],2))`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+```
