@@ -1,0 +1,233 @@
+## Daniel Izaguirre
+## Project 2
+## Dr. Spence
+## Data Science, 3900
+
+## 1) Create the 3 functions
+set.seed(92)
+GenUnifSamples <- function(size, num_samp){
+  if(missing(num_samp)){
+    num_samp = 10000
+    r_samples <- rep(0,size)
+    for(i in 1:num_samp)
+      r_samples[i] = mean(runif(size, min = 1, max = 10))
+    return (r_samples)
+  } else {
+    r_samples <- rep(0,size)
+    for(i in 1:num_samp)
+      r_samples[i] = mean(runif(size, min = 1, max = 10))
+    return (r_samples)
+  }
+}
+GenNormSamples <- function(size, num_samp){
+  if(missing(num_samp)){
+    num_samp = 10000
+    r_samples <- rep(0,size)
+    for(i in 1:num_samp)
+      r_samples[i] = mean(rnorm(size))
+    return (r_samples)
+  } else {
+    num_samp = 10000
+    r_samples <- rep(0,size)
+    for(i in 1:num_samp)
+      r_samples[i] = mean(rnorm(size))
+    return (r_samples)
+  }
+}
+GenExpSamples <- function(size, num_samp){
+  if(missing(num_samp)){
+    num_samp = 10000
+    r_samples <- rep(0,size)
+    for(i in 1:num_samp)
+      r_samples[i] = mean(rexp(size, rate = 1))
+    return (r_samples)
+  } else {
+    r_samples <- rep(0,size)
+    for(i in 1:num_samp)
+      r_samples[i] = mean(rexp(size, rate = 1))
+    return (r_samples)
+  }
+}
+
+## 2a- Theoretical Density Plot
+## Theorical Denisty Plot for Uniform Distribution
+#png(file= "Uniform Distribution Theoretical Density Plot1.png")
+x <- seq(.9,10.1,length=400)
+hx <- dunif(x, 1, 10)
+s <- plot(x,hx,type="l",xlab = "", ylab = "Density",
+          main = "Theoretical Density Plot for Uniform Distribution")
+#dev.off()
+## Theorical Denisty Plot for Normal Distribution
+#png(file= "Normal Distribution Theoretical Density Plot1.png")
+x <- seq(-3.5,3.5,length=400)
+hx <- dnorm(x)
+s <- plot(x,hx,type="l",xlab = "", ylab = "Density",
+          main = "Theoretical Density Plot for Normal Distribution")
+#dev.off()
+## Theorical Denisty Plot for Exponential Distribution
+#png(file= "Exponential Distribution Theoretical Density Plot1.png")
+x <- seq(-0.1, 8,length=400)
+hx <- dexp(x)
+s <- plot(x,hx,type="l",xlab = "", ylab = "Density",
+          main = "Theoretical Density Plot for Exponential Distribution")
+#dev.off()
+
+## 2b)
+## Uniform Sample
+#png(file= "1 Uniform Distribution Sample Means1.png")
+us <- GenUnifSamples(1,10000)
+hist(us, main = "Uniform Distribution Sample of Means", xlab = "Sample Size of 1")
+summary(us)
+us_mean <- mean(us)
+paste("The uniform distribution mean is", us_mean)
+us_med <- median(us)
+paste("The uniform distribution median is", us_med)
+#dev.off()
+## Normal Sample
+#png(file= "1 Normal Distribution Sample Means1.png")
+ns <- GenNormSamples(1,10000)
+hist(ns, main = "Normal Distribution Sample of Means", xlab = "Sample Size of 1")
+summary(ns)
+ns_mean <- mean(ns)
+paste("The normal distribution mean is", ns_mean)
+ns_med <- median(ns)
+paste("The normal distribution median is", ns_med)
+#dev.off()
+## Exponential Sample
+#png(file= "1 Exponential Distribution Sample Means1.png")
+es <- GenExpSamples(1,10000)
+hist(es, main = "Exponential Distribution Sample of Means", xlab = "Sample Size of 1")
+summary(es)
+es_mean <- mean(es)
+paste("The exponential distribution mean is", es_mean)
+es_med <- median(es)
+paste("The exponential distribution median is", es_med)
+#dev.off
+
+## 2c) Use the function three times to generate the
+##     following 3 sets of samples:
+## GenNormSamples
+ns_5 <- GenNormSamples(5)
+ns_25 <- GenNormSamples(25)
+ns_500 <- GenNormSamples(500)
+# GenUnifSamples
+us_5 <- GenUnifSamples(5)
+us_25 <- GenUnifSamples(25)
+us_500 <- GenUnifSamples(500)
+# GenExpSamples
+es_5 <- GenExpSamples(5)
+es_25 <- GenExpSamples(25)
+es_500 <- GenExpSamples(500)
+
+## 2d)
+## 1st Bullet Point
+
+##### Uniform distribution histogram of those #2c sample means
+#png(file= "5 Uniform Distribution Sample Means.png")
+hist(us_5, main = "Uniform Distribution Sample of Means", xlab = "Sample of Size 5")
+#dev.off()
+#png(file= "25 Uniform Distribution Sample Means.png")
+hist(us_25, main = "Uniform Distribution Sample of Means", xlab = "Sample of Size 25")
+#dev.off()
+#png(file= "500 Uniform Distribution Sample Means.png")
+hist(us_500, main = "Uniform Distribution Sample of Means", xlab = "Sample of Size 500")
+#dev.off()
+
+##### Normal distribution histogram of those #2c sample means
+#png(file= "5 Normal Distribution Sample Means1.png")
+hist(ns_5, main = "Normal Distribution Sample of Means", xlab = "Sample of Size 5")
+#dev.off()
+#png(file= "25 Normal Distribution Sample Means1.png")
+hist(ns_25, main = "Normal Distribution Sample ofMeans", xlab = "Sample of Size 25")
+#dev.off()
+#png(file= "500 Normal Distribution Sample Means1.png")
+hist(ns_500, main = "Normal Distribution Sample of Means", xlab = "Sample of Size 500")
+#dev.off()
+
+##### Exponential distribution histogram of those #2c sample means
+#png(file= "5 Exponential Distribution Sample Means1.png")
+hist(es_5, main = "Exponential Distribution Sample of Means", xlab = "Sample of Size 5")
+#dev.off()
+#png(file= "25 Exponential Distribution Sample Means1.png")
+hist(es_25, main = "Exponential Distribution Sample of Means", xlab = "Sample of Size 25")
+#dev.off()
+#png(file= "500 Exponential Distribution Sample Means1.png")
+hist(es_500, main = "Exponential Distribution Sample of Means", xlab = "Sample of Size 500")
+#dev.off()
+
+## 2nd Bullet Point
+## Mean of Means
+## Mean of Uniform Distribution of Means
+m_us5 <- mean(us_5)
+paste("Mean of the means in the Uniform Distribution sample of size 5:",m_us5)
+m_us25 <- mean(us_25)
+paste("Mean of the means in the Uniform Distribution sample of size 25:",m_us25)
+m_us500 <- mean(us_500)
+paste("Mean of the means in the Uniform Distribution sample of size 500:",m_us500)
+## Mean of Normal Distribution of Means
+m_ns5 <- mean(ns_5)
+paste("Mean of the means in the Normal Distribution sample of size 5:",m_ns5)
+m_ns25 <- mean(ns_25)
+paste("Mean of the means in the Normal Distribution sample of size 25:",m_ns25)
+m_ns500 <- mean(ns_500)
+paste("Mean of the means in the Normal Distribution sample of size 500:",m_ns500)
+## Means of Exponential Distribution of Means
+m_es5 <- mean(es_5)
+paste("Mean of the means in Exponential Distribution the sample of size 5:",m_es5)
+m_es25 <- mean(es_25)
+paste("Mean of the means in Exponential Distribution the sample of size 25:",m_es25)
+m_es500 <- mean(es_500)
+paste("Mean of the means in Exponential Distribution the sample of size 500:",m_es500)
+
+## Standard Deviation of Means
+## Standard Deviation of Exponential Distribution of Means
+sd_us5 <- sd(us_5)
+paste("Standard Deviation of the means in the Uniform Distribution sample of size 5:",m_us5)
+sd_us25 <- sd(us_25)
+paste("Standard Deviation of the means in the Uniform Distribution sample of size 25:",m_us25)
+sd_us500 <- sd(us_500)
+paste("Standard Deviation of the means in the Uniform Distribution sample of size 500:",m_us500)
+## Standard Deviation of Normal Distribution of Means
+sd_ns5 <- sd(ns_5)
+paste("Standard Deviation of the means in the Normal Distribution sample of size 5:",m_ns5)
+sd_ns25 <- sd(ns_25)
+paste("Standard Deviation of the means in the Normal Distribution sample of size 25:",m_ns25)
+sd_ns500 <- sd(ns_500)
+paste("Standard Deviation of the means in the Normal Distribution sample of size 500:",m_ns500)
+## Standard Deviation of Exponential Distribution of Means
+sd_es5 <- sd(es_5)
+paste("Standard Deviation of the means in Exponential Distribution the sample of size 5:",m_es5)
+sd_es25 <- sd(es_25)
+paste("Standard Deviation of the means in Exponential Distribution the sample of size 25:",m_es25)
+sd_es500 <- sd(es_500)
+paste("Standard Deviation of the means in Exponential Distribution the sample of size 500:",m_es500)
+
+## 5-number Summary of Means
+## 5-#-S of sample size 5 for Uniform Distribution of Means
+summary(us_5)
+## 5-#-S of sample size 25 for Uniform Distribution of Means
+summary(us_25)
+## 5-#-S of sample size 500 for Uniform Distribution of Means
+summary(us_500)
+
+## 5-#-S of sample size 5 for Normal Distribution of Means
+summary(ns_5)
+## 5-#-S of sample size 25 for Normal Distribution of Means
+summary(ns_25)
+## 5-#-S of sample size 500 for Normal Distribution of Means
+summary(ns_500)
+
+## 5-#-S of sample size 5 for Exponential Distribution of Means
+summary(es_5)
+## 5-#-S of sample size 25 for Exponential Distribution of Means
+summary(es_25)
+## 5-#-S of sample size 500 for Exponential Distribution of Means
+summary(es_500)
+
+
+
+
+
+
+
+
