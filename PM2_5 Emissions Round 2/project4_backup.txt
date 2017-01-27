@@ -1,0 +1,83 @@
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(reshape2)
+
+## Set reference up incase of use
+REF <- readRDS("Source_Classification_Code.rds")
+r <- head(REF)
+View(REF)
+tbl_df(r)
+## Analysing the head because of ~6million records.
+NEI <- readRDS("summarySCC_PM25.rds")
+h <- head(NEI)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(reshape2)
+
+## Set reference up incase of use
+REF <- readRDS("Source_Classification_Code.rds")
+#r <- head(REF)
+#View(REF)
+#tbl_df(r)
+## Analysing the head because of ~6million records.
+NEI <- readRDS("summarySCC_PM25.rds")
+#h <- head(NEI)
+#View(h)
+#tbl_df(h)
+
+# Q1) A data frame containing only rows for these 3 California counties: Los Angeles County
+# (fips code “06037”), Orange County (“06059”), and San Bernadino County (“06071”). The
+# only columns in the data frame should be fips, SCC, and Emissions.
+
+# Filter by respective fips code, this will make adding county column in q2
+data1_a <- filter(NEI, fips=="06037")
+data1_b <- filter(NEI, fips=="06059")
+data1_c <- filter(NEI, fips=="06071")
+data1 <- do.call("rbind", list(data1_a,data1_b,data1_c))
+data1
+
+# Q2) From the data frame constructed in step 1, add two additional columns: One called ‘County’
+# with the name of the county (based on fips code), and one called ‘Solvent’. The value of
+# ‘Solvent’ should be YES for any pollutant source that involves solvents, and NO otherwise.
+# Mutate each for their respective county
+mut1_a <- mutate(data1_a, county = 'Los Angeles')
+mut1_b <- mutate(data1_b, county = 'Orange County')
+mut1_c <- mutate(data1_c, county = 'San Bernadino')
+data2_a <- do.call("rbind", list(mut1_a,mut1_b,mut1_c))
+View(data2_a)
+
+sol <- REF %>% 
+  select(SCC, EI.Sector) %>% 
+  mutate(Solvent = ifelse(grepl('Solvent', REF$EI.Sector, ignore.case=TRUE), "Yes", "No")) %>% 
+  select(-EI.Sector) %>% 
+View(sol)
+
+data2 <- full_join(data2_a, sol, by = c('SCC','SCC'))
+
+
+View(data2)
+
+q2 <- data2 %>% 
+  group_by()
+
+
+
+
+
+
+
+#data2_c <- data2_a %>% mutate(Solvent = ifelse(contains(SCC, sol), "Yes", "No"))
+#data2_c
+#View(data2_c)
+#data2_c$Solvent['YES']
+
+#sol <- data.frame(grepl('Solvent', REF$EI.Sector, ignore.case=TRUE)) 
+#colnames(sol) <- "SCC"
+#View(sol)
+
+#sol <- REF %>% filter(grepl('Solvent', EI.Sector, ignore.case=TRUE)) %>% 
+#  select(SCC)
+#View(sol)
+
