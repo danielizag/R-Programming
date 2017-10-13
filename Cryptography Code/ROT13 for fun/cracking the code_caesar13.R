@@ -33,6 +33,6 @@ longFormCiph <- function(string){
   return(y)
 }
 
-string="string have u seen the ox go pee pee?"
+string="hi hello, this is plaintext to cyphertext"
 y <- longFormCiph(string)
 print(y)
